@@ -15,8 +15,7 @@ import (
 )
 
 func main() {
-	
-	 err := godotenv.Load()
+	err := godotenv.Load()
     if err != nil {
         log.Println("INFO: No .env file found, reading from system environment")
     }
@@ -37,6 +36,8 @@ func main() {
 	port := fmt.Sprintf(":%s", cfg.HTTPPort)
 
 	go http.ListenAndServe(port, routes)
+
+	fmt.Println("Server is running successfully on port", cfg.HTTPPort)
 	
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
