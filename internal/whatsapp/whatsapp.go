@@ -70,5 +70,7 @@ func (b *Bot) Login() error {
 
 					time.Sleep(time.Second * 20)
 				}
+			case *events.StreamError, *events.Disconnected:
+				close(b.qrChan)
 			}
 	}

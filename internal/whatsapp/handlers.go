@@ -100,15 +100,17 @@ func (b *Bot) handleQR() http.HandlerFunc {
 			case <-time.After(pingInterval):
 				io.WriteString(w, ": heart-beat\n\n")
 				f.Flush()
-			case qrCode := <-b.qrChan:
+			case qrCode, ok := <-b.qrChan:
+				if !ok {
+					io.WriteString(w, "event: error\ndata: The QR code process has timed out or completed.\n\n")
+					f.Flush()
+					break L
+				}
+
 				io.WriteString(w, "event: qr\n")
 				fmt.Fprintf(w, "data: %s\n\n", qrCode)
 			}
 		}
-
-		io.WriteString(w, "event: error\ndata: eof\n\n")
-		f.Flush()
-
 	}
 }
 
