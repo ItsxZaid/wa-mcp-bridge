@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -63,36 +64,34 @@ func (b *Bot) handleLogin() http.HandlerFunc {
 func (b *Bot) handleQR() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if b.client != nil && b.client.IsConnected() {
-			log.Printf("Bot already running.")
-			http.Error(w, "Bot already connected to a whatsapp account.", http.StatusConflict)
+			http.Error(w, "Bot already connected.", http.StatusConflict)
 			return 
 		} 
 		
-		if b.client == nil {
-				if err := b.Login(); err != nil {
-					http.Error(w, "Failed to start a connection to whatsapp", http.StatusInternalServerError)
-					return 
-				}
+		if err := b.Login(); err != nil {
+			http.Error(w, "Failed to start a connection", http.StatusInternalServerError)
+			return 
 		}
 
-
-		ctx := r.Context()
-
+		f, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+			return
+		}	
+		
 		hdr := w.Header()
 		hdr.Set("Content-Type", "text/event-stream")
 		hdr.Set("Cache-Control", "no-cache")
 		hdr.Set("Connection", "keep-alive")
 		hdr.Set("X-Accel-Buffering", "no")
 
-		f, ok := w.(http.Flusher)
-		if !ok {
-			return
-		}	
-		
-		io.WriteString(w, ": ping\n\n")
-		f.Flush()
-			
-		L:
+		b.serveQREvents(r.Context(), w, f)
+	}
+}
+
+
+func (b *Bot) serveQREvents(ctx context.Context, w http.ResponseWriter, f http.Flusher) {
+			L:
 		for {
 			select {
 			case <- ctx.Done():
@@ -110,13 +109,8 @@ func (b *Bot) handleQR() http.HandlerFunc {
 				io.WriteString(w, "event: qr\n")
 				fmt.Fprintf(w, "data: %s\n\n", qrCode)
 			}
-		}
-	}
-}
-
-
-
-
+		}	
+}	
 
 
 

@@ -54,7 +54,7 @@ func (b *Bot) Login() error {
 	return initError
 }
 
-	func (b *Bot) eventHandler(event interface{}) {
+func (b *Bot) eventHandler(event interface{}) {
 			switch v := event.(type) {
 			case *events.Connected:
 				close(b.qrChan)
@@ -73,4 +73,4 @@ func (b *Bot) Login() error {
 			case *events.StreamError, *events.Disconnected:
 				close(b.qrChan)
 			}
-	}
+}
