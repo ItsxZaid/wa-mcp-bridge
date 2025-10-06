@@ -39,8 +39,6 @@ func main() {
 		log.Fatalf("Error initializing whatsapp: %v", err)
 	}
 
-	// TODO: before server we need to make whatsapp instance
-
 	srv := server.New(cfg.HTTPPort, dataStore, waBot)
 
 	go func() {
