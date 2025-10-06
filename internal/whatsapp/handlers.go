@@ -85,12 +85,15 @@ func (b *Bot) handleQR() http.HandlerFunc {
 		hdr.Set("Connection", "keep-alive")
 		hdr.Set("X-Accel-Buffering", "no")
 
+		io.WriteString(w, ": ping\n")
+		f.Flush()
+
 		b.serveQREvents(r.Context(), w, f)
 	}
 }
 
 
-func (b *Bot) serveQREvents(ctx context.Context, w http.ResponseWriter, f http.Flusher) {
+func (b *Bot) serveQREvents(ctx context.Context, w io.Writer, f http.Flusher) {
 			L:
 		for {
 			select {
@@ -108,6 +111,7 @@ func (b *Bot) serveQREvents(ctx context.Context, w http.ResponseWriter, f http.F
 
 				io.WriteString(w, "event: qr\n")
 				fmt.Fprintf(w, "data: %s\n\n", qrCode)
+				f.Flush()
 			}
 		}	
 }	
